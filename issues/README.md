@@ -35,3 +35,10 @@ Or specify a specific file:
 ```bash
 python scripts/create_issues.py issues/my-issue.md
 ```
+
+## Best Practices
+
+- After issues are successfully created, consider removing or archiving the issue files to avoid duplicate creation
+- Use descriptive filenames that match the issue title (e.g., `add-feature-x.md`)
+- The README.md file in this folder is automatically excluded from processing
+
