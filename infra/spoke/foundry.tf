@@ -22,28 +22,56 @@ resource "azurerm_cognitive_account_project" "project" {
   }
 }
 
-// https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/ai-gateway?view=foundry
-resource "azapi_resource" "model_gateway_connection" {
+# Gold tier connection - No rate limiting
+resource "azapi_resource" "model_gateway_connection_gold" {
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-  name      = "model-gateway"
+  name      = "model-gateway-gold"
   parent_id = azurerm_cognitive_account_project.project.id
   body = {
     properties = {
-      category      = "ApiManagement" # or "ModelGateway" if you are not using APIM
-      target        = var.model_gateway.url
+      category      = "ApiManagement"
+      target        = var.model_gateway_gold.url
       authType      = "ApiKey"
       isSharedToAll = false
       credentials = {
-        key = var.model_gateway.api_key
+        key = var.model_gateway_gold.api_key
       }
       metadata = merge(
         {
-          deploymentInPath    = tostring(var.model_gateway.metadata.deploymentInPath)
-          inferenceAPIVersion = var.model_gateway.metadata.inferenceAPIVersion
-          models              = jsonencode(var.model_gateway.metadata.models)
+          deploymentInPath    = tostring(var.model_gateway_gold.metadata.deploymentInPath)
+          inferenceAPIVersion = var.model_gateway_gold.metadata.inferenceAPIVersion
+          models              = jsonencode(var.model_gateway_gold.metadata.models)
         },
-        var.model_gateway.metadata.deploymentAPIVersion != null && var.model_gateway.metadata.deploymentAPIVersion != "" ? {
-          deploymentAPIVersion = var.model_gateway.metadata.deploymentAPIVersion
+        var.model_gateway_gold.metadata.deploymentAPIVersion != null && var.model_gateway_gold.metadata.deploymentAPIVersion != "" ? {
+          deploymentAPIVersion = var.model_gateway_gold.metadata.deploymentAPIVersion
+        } : {}
+      )
+    }
+  }
+}
+
+# Bronze tier connection - Token rate limited (1000 tokens per minute)
+resource "azapi_resource" "model_gateway_connection_bronze" {
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = "model-gateway-bronze"
+  parent_id = azurerm_cognitive_account_project.project.id
+  body = {
+    properties = {
+      category      = "ApiManagement"
+      target        = var.model_gateway_bronze.url
+      authType      = "ApiKey"
+      isSharedToAll = false
+      credentials = {
+        key = var.model_gateway_bronze.api_key
+      }
+      metadata = merge(
+        {
+          deploymentInPath    = tostring(var.model_gateway_bronze.metadata.deploymentInPath)
+          inferenceAPIVersion = var.model_gateway_bronze.metadata.inferenceAPIVersion
+          models              = jsonencode(var.model_gateway_bronze.metadata.models)
+        },
+        var.model_gateway_bronze.metadata.deploymentAPIVersion != null && var.model_gateway_bronze.metadata.deploymentAPIVersion != "" ? {
+          deploymentAPIVersion = var.model_gateway_bronze.metadata.deploymentAPIVersion
         } : {}
       )
     }
